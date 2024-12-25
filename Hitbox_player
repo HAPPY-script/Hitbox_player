@@ -1,0 +1,79 @@
+-- hit box player
+
+game.StarterGui:SetCore("SendNotification", {
+    Title = "CREATE BY HAPPY script";
+    Text = "Click (Check) to scan and enlarge Players";
+    Duration = 7;
+})
+
+local ScreenGui = Instance.new("ScreenGui")
+local MenuFrame = Instance.new("Frame")
+local CloseButton = Instance.new("TextButton")
+local CheckButton = Instance.new("TextButton")
+
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+MenuFrame.Size = UDim2.new(0, 200, 0, 100) -- Kích thước menu
+MenuFrame.Position = UDim2.new(0, 10, 0, 10) -- Vị trí menu
+MenuFrame.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Màu xanh lá
+MenuFrame.BackgroundTransparency = 0.5 -- Độ trong suốt
+MenuFrame.Active = true
+MenuFrame.Draggable = true
+MenuFrame.Parent = ScreenGui
+
+-- Cài đặt nút xóa
+CloseButton.Size = UDim2.new(0, 30, 0, 30)
+CloseButton.Position = UDim2.new(0, 5, 0, 5)
+CloseButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+CloseButton.Text = "X"
+CloseButton.Parent = MenuFrame
+
+-- Cài đặt nút check
+CheckButton.Size = UDim2.new(0, 100, 0, 50)
+CheckButton.Position = UDim2.new(0, 50, 0, 25)
+CheckButton.BackgroundColor3 = Color3.fromRGB(255, 215, 0) -- Màu vàng
+CheckButton.Text = "Check"
+CheckButton.Parent = MenuFrame
+
+-- Nút xóa sẽ đóng menu
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- Xử lý nút Check
+CheckButton.MouseButton1Click:Connect(function()
+    local maxSize = Vector3.new(70, 70, 70) -- Kích thước tối đa của người chơi
+    local transparencyValue = 1 -- Độ trong suốt
+    local checkRadius = 1000 -- Bán kính tác động
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+    -- Quét các người chơi
+    for _, otherPlayer in pairs(game.Players:GetPlayers()) do
+        if otherPlayer ~= player then
+            local otherCharacter = otherPlayer.Character
+            if otherCharacter and otherCharacter:FindFirstChild("HumanoidRootPart") then
+                local otherHumanoidRootPart = otherCharacter.HumanoidRootPart
+                local distance = (humanoidRootPart.Position - otherHumanoidRootPart.Position).Magnitude
+                if distance <= checkRadius then
+                    -- Phóng to các phần cơ thể của người chơi đến kích thước tối đa
+                    for _, part in pairs(otherCharacter:GetChildren()) do
+                        -- Chỉ tác động đến các phần cơ thể (BasePart)
+                        if part:IsA("BasePart") then
+                            pcall(function()
+                                -- Chỉ phóng to nếu kích thước hiện tại nhỏ hơn maxSize
+                                if part.Size.X < maxSize.X then
+                                    part.Size = maxSize
+                                    part.Transparency = transparencyValue
+                                    part.BrickColor = BrickColor.new("Really red")
+                                    part.Material = Enum.Material.Neon
+                                    part.CanCollide = false
+                                end
+                            end)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
